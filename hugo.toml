@@ -1,0 +1,57 @@
+baseURL = 'https://blog.szuecs.net/'
+languageCode = 'en-us'
+title = 'non random thoughts'
+theme = 'kiera'
+copyright = "Copyright &copy; 2025 - Sandor Szücs"
+
+summaryLength = 30
+enableEmoji = true
+pygmentsCodeFences = true
+
+sectionPagesMenu = 'main'
+
+# required for mathjax
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['\[', '\]'], ['$$', '$$']]
+          inline = [['\(', '\)']]
+
+[params]
+  math = true
+  mathjax = true
+  #site_logo = "TODO"
+  #tagline = "the tagline for this website"
+  customCSS = []  #Optional Customised CSS
+  disableDarkModeCSS = false # disables css style for users using dark-mode
+  [params.author]
+    name = "Sandor Szücs"
+    github = "szuecs"
+    mastodon = "@hachyderm.io/@sszuecs"
+
+
+[menu]
+
+  [[menu.main]]
+    name = "Home"
+    post = "<span class='alert'>New!</span>"
+    pre = "<i class='fa fa-road'></i>"
+    url = "/"
+    weight = -120
+
+  [[menu.main]]
+    identifier = "posts"
+    name = "Posts"
+    pre = "<i class='fa fa-heart'></i>"
+    url = "/posts/"
+    weight = -110
+
+  [[menu.main]]
+    identifier = "about"
+    name = "About"
+    pre = "<i class='fa fa-heart'></i>"
+    url = "/about/"
+    weight = -100

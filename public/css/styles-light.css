@@ -92,8 +92,21 @@ time {
   margin-left: 1em;
 }
 
-#container nav ul li a.active {
-  border-bottom: 0.5em solid #666666;
+#container nav ul li a {}
+
+#container nav ul li a:active {
+    border-bottom: 0.5em solid #ccc;
+    color: purple;
+    background-color: yellow;
+}
+
+#container nav ul li a:visited {
+    /*color: #aaa;*/
+}
+
+#container nav ul li a:hover {
+    border-bottom: 0.5em solid #ccc;
+    background-color: yellow;
 }
 
 #container main {

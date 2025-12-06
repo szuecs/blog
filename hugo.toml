@@ -55,3 +55,24 @@ sectionPagesMenu = 'main'
     pre = "<i class='fa fa-heart'></i>"
     url = "/about/"
     weight = -100
+
+  [[menu.footer]]
+    name = "Home"
+    post = "<span class='alert'>New!</span>"
+    pre = "<i class='fa fa-road'></i>"
+    url = "/"
+    weight = -120
+
+  [[menu.footer]]
+    identifier = "posts"
+    name = "Posts"
+    pre = "<i class='fa fa-heart'></i>"
+    url = "/posts/"
+    weight = -110
+
+  [[menu.footer]]
+    identifier = "about"
+    name = "About"
+    pre = "<i class='fa fa-heart'></i>"
+    url = "/about/"
+    weight = -100

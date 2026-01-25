@@ -1,6 +1,6 @@
 baseURL = 'https://blog.szuecs.net/'
 languageCode = 'en-us'
-title = 'non random thoughts'
+title = 'random thoughts'
 theme = 'kiera'
 copyright = "Copyright &copy; 2025 - Sandor Szücs"
 

@@ -26,7 +26,7 @@ time {
 }
 
 #container > * {
-  width: 700px;
+  width: 800px;
   margin: 0 auto;
 }
 
@@ -43,6 +43,7 @@ time {
 
 #container header h1 {
   font-size: 2.4rem;
+  text-decoration: none;
 }
 
 #container header h1 a {
@@ -95,18 +96,23 @@ time {
 #container nav ul li a {}
 
 #container nav ul li a:active {
-    border-bottom: 0.5em solid #ccc;
-    color: purple;
-    background-color: yellow;
+    border-bottom: 0.5em solid #ddd;
+    color: black;
+    background-color: #ddd;
 }
 
-#container nav ul li a:visited {
-    /*color: #aaa;*/
-}
+#container nav ul li a:visited {}
 
 #container nav ul li a:hover {
     border-bottom: 0.5em solid #ccc;
-    background-color: yellow;
+    color: black;
+    background-color: #ccc;
+}
+
+#container nav ul li a:focus {
+    border-bottom: 0.5em solid #ccc;
+    color: purple;
+    background-color: #ccc;
 }
 
 #container main {

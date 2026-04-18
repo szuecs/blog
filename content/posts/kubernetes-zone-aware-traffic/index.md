@@ -1,10 +1,10 @@
 +++
-title = "Index"
+title = "Journey of Zone Aware Traffic"
 date = 2026-04-18T20:02:25+02:00
 images = []
 tags = ["kubernetes", "infrastructure", "distributed systems"]
 categories = []
-draft = true
+draft = false
 +++
 
 Today, I want to share a bit of details in our steps to support zone

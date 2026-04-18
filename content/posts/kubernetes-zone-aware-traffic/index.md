@@ -10,9 +10,11 @@ draft = false
 Today, I want to share a bit of details in our steps to support zone
 aware traffic in our [Kubernetes infrastructure](https://kubernetes-on-aws.readthedocs.io/en/latest/admin-guide/kubernetes-in-production.html).
 
-You can learn a bit of [Kubernetes](https://kubernetes.io/) and
+You can learn a bit of [Kubernetes](https://kubernetes.io/) and see
 interesting effects it can have. First I have to share something about
 the environment.
+
+### Starting from zero!
 
 There are basically two patterns in Kubernetes infrastructure deployments:
 
@@ -21,9 +23,9 @@ There are basically two patterns in Kubernetes infrastructure deployments:
 
 In our case it's the latter, a single Kubernetes cluster spans
 multiple zones, 3 by default. The advantage is that you have more
-simple availability possbilities, if applications run across 3 zones
+simple availability guarantees, because all your applications run across 3 zones
 by default. On the other hand, doing traffic engineering, so prefer
-close instances is more complex. Before I tell about the problem space
+close instances, is more complex. Before I tell about the problem space
 and our findings, let me share our basic [Kubernetes
 Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
 setup. It is a 2-layer load balancer infrastructure serving a large
@@ -57,34 +59,56 @@ In this environment zone aware traffic has 4 parts:
 3. skipper-ingress to backend pods
 4. cluster internal clients to skipper-ingress through a service type ClusterIP
 
-1. and 2. are done by kube-ingress-aws-controller. You can set
-`-nlb-cross-zone=false` to disable sending traffic cross zone from the
-load balancer TargetGroup to skipper-ingress.  If you set
+Kube-ingress-aws-controller manages ALBs and NLBs, so 1. and 2. are
+done, that one. You can set `-nlb-cross-zone=false` to disable sending
+traffic cross zone from the load balancer TargetGroup to
+skipper-ingress.  If you set
 `--nlb-zone-affinity=availability_zone_affinity` all clients running
 in the same zone in any AWS account will resolve DNS to same zone. So
-instead of 3 IPs for NLB TLS Listeners you will resolve only one. It
-does not matter if you have a client in the same or in another
-cluster.
+instead of 3 IPs for NLB Listeners you will resolve only one. It does
+not matter if you have a client in the same or in another cluster.
 
 Since
 [v0.24.22](https://github.com/zalando/skipper/releases/tag/v0.24.22)
-skipper supports zone aware traffic in its kubernetes
+skipper supports zone aware traffic (3.) in its kubernetes
 dataclient. Dataclients are the way to fetch data, that skipper uses
 to create its routing table. If you run skipper-ingress with the
 kubernetes dataclient configured, every skipper-ingress pod will fetch
 all relevant Kubernetes objects to build its routing tree. In larger
 environments this is quite some load on the Kubernetes control plane
 and it's easy to break Kubernetes control plane by scaling out. The
-way to control the load that is done to the Kubernetes control plane
+skipper way to control the load targeting the Kubernetes control plane
 is to run skipper's `routesrv`.
 [Routesrv](https://opensource.zalando.com/skipper/kubernetes/ingress-controller/#routesrv)
-is a skipper component and uses the Kubernetes dataclient to fetch
+is a skipper control plane component. It uses the Kubernetes dataclient to fetch
 routing information and exposes an API endpoint to fetch eskip
 routes. [Eskip](https://pkg.go.dev/github.com/zalando/skipper/eskip)
-is the skipper native routing language. Of course if your data-plane
-skipper-ingress fetches routes from a control plane component like
-routesrv, the question is: how does routesrv know where the data-plan
-is running?
+is the skipper native routing language. Eskip has a set of paradigms:
+
+- Routes match by [`predicates`](https://opensource.zalando.com/skipper/reference/predicates/)
+- Predicates can be combined by `&&` (logical AND), if you need a logical OR, you have to create another route.
+- Features in the request or response path are implemented in [`filters`](https://opensource.zalando.com/skipper/reference/filters/).
+- [Backends](https://opensource.zalando.com/skipper/reference/backends/) are more than a list of load balancer pool members.
+
+Eskip examples:
+
+```eskip
+// syntax
+routeID: Predicate1 && Predicate2 -> filter1 -> filter2 -> <backend>;
+
+r1: Path("/resource/:id") -> setRequestHeader("X-Resource-Id", "${id}") -> clusterClientRatelimit("resource", 10, "1m", "X-Resource-Id") -> "https://backend.example.org";
+
+r2: Host("products.example.org") && Path("/products/:productId")
+    -> consistentHashKey("${productId}")
+    -> consistentHashBalanceFactor(1.25)
+    -> <consistentHash, "http://127.0.0.1:9998", "http://127.0.0.1:9997">;
+```
+
+### Coming back to zone aware traffic.
+
+Of course if your data-plane skipper-ingress fetches routes from a
+control plane component like routesrv, the question is: how does
+routesrv know where the data-plan is running?
 
 The answer in our routesrv based zone aware traffic feature available
 in [v0.24.64](https://github.com/zalando/skipper/releases/tag/v0.24.64)

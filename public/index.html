@@ -17,7 +17,7 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="random thoughts">
 
-<meta name="generator" content="Hugo 0.152.2">
+<meta name="generator" content="Hugo 0.156.0">
     
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="/js/mathjax-config.js" defer></script>
@@ -93,6 +93,56 @@
     
 
     <li class="first" >
+      <h1><a href="https://blog.szuecs.net/posts/kubernetes-zone-aware-traffic/" title="Journey of Zone Aware Traffic">Journey of Zone Aware Traffic</a></h1>
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2026-04-18T20:02:25&#43;02:00">Apr 18, 2026</time>
+        </li>
+        
+        
+
+        
+        <li>
+            <em>
+                
+                    
+                    <a href="/tags/kubernetes">#kubernetes</a>
+                
+                    , 
+                    <a href="/tags/infrastructure">#infrastructure</a>
+                
+                    , 
+                    <a href="/tags/distributed-systems">#distributed systems</a>
+                
+            </em>
+        </li>
+        
+
+        <li>7 minute read</li>
+    </ul>
+</aside>
+
+      
+<div class="featured_image">
+    <a href="https://blog.szuecs.net/posts/kubernetes-zone-aware-traffic/" title="Journey of Zone Aware Traffic">
+        <img src="">
+    </a>
+</div>
+
+
+      <p><p>Today, I want to share a bit of details in our steps to support zone
+aware traffic in our <a href="https://kubernetes-on-aws.readthedocs.io/en/latest/admin-guide/kubernetes-in-production.html">Kubernetes infrastructure</a>.</p>
+<p>You can learn a bit of <a href="https://kubernetes.io/">Kubernetes</a> and see
+interesting effects it can have. First I have to share something about
+the environment.</p></p>
+      
+      <a href="/posts/kubernetes-zone-aware-traffic/">Read more…</a>
+      
+    </li>
+    
+
+    <li >
       <h1><a href="https://blog.szuecs.net/posts/test-post/" title="Hugo Tests">Hugo Tests</a></h1>
       <aside>
     <ul>
@@ -138,15 +188,15 @@
       <p><p>Hello &#x1f44b;</p>
 <p>This is my first test post to test language rendering for Go and Bash and how to use pictures.</p>
 <p>Something written in Go with highlights</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;display:grid;"><code class="language-go" data-lang="go"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#a2f;font-weight:bold">package</span><span style="color:#bbb"> </span>main<span style="color:#bbb">
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;display:grid;"><code class="language-go" data-lang="go"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#a2f;font-weight:bold">package</span><span style="color:#bbb"> </span>main<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#bbb">
-</span></span></span><span style="display:flex; background-color:#dfdfdf"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#bbb"></span><span style="color:#a2f;font-weight:bold">import</span><span style="color:#bbb"> </span><span style="color:#b44">&#34;fmt&#34;</span><span style="color:#bbb">
+</span></span></span><span style="display:flex; background-color:#dfdfdf"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#a2f;font-weight:bold">import</span><span style="color:#bbb"> </span><span style="color:#b44">&#34;fmt&#34;</span><span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span><span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span><span style="color:#bbb"></span><span style="color:#a2f;font-weight:bold">func</span><span style="color:#bbb"> </span><span style="color:#00a000">main</span>()<span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span><span style="color:#a2f;font-weight:bold">func</span><span style="color:#bbb"> </span><span style="color:#00a000">main</span>()<span style="color:#bbb"> </span>{<span style="color:#bbb">
 </span></span></span><span style="display:flex; background-color:#dfdfdf"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6</span><span><span style="color:#bbb">    </span><span style="color:#a2f;font-weight:bold">for</span><span style="color:#bbb"> </span>i<span style="color:#bbb"> </span><span style="color:#666">:=</span><span style="color:#bbb"> </span><span style="color:#666">0</span>;<span style="color:#bbb"> </span>i<span style="color:#bbb"> </span>&lt;<span style="color:#bbb"> </span><span style="color:#666">3</span>;<span style="color:#bbb"> </span>i<span style="color:#666">++</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
 </span></span></span><span style="display:flex; background-color:#dfdfdf"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7</span><span><span style="color:#bbb">        </span>fmt.<span style="color:#00a000">Println</span>(<span style="color:#b44">&#34;Value of i:&#34;</span>,<span style="color:#bbb"> </span>i)<span style="color:#bbb">
 </span></span></span><span style="display:flex; background-color:#dfdfdf"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb">
-</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9</span><span><span style="color:#bbb"></span>}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9</span><span>}<span style="color:#bbb">
 </span></span></span></code></pre></div><p>Another thing written in Go without highlights</p></p>
       
       <a href="/posts/test-post/">Read more…</a>

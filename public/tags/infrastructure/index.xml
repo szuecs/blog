@@ -1,15 +1,15 @@
 
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
  <channel>
-   <title>Posts on random thoughts</title>
-   <link>https://blog.szuecs.net/posts/</link>
-   <description>Recent content in Posts on random thoughts</description>
+   <title>Infrastructure on random thoughts</title>
+   <link>https://blog.szuecs.net/tags/infrastructure/</link>
+   <description>Recent content in Infrastructure on random thoughts</description>
    <generator>Hugo -- gohugo.io</generator>
    <language>en-us</language>
    <copyright>Copyright &amp;copy; 2025 - Sandor Szücs</copyright>
    <lastBuildDate>Sat, 18 Apr 2026 20:02:25 +0200</lastBuildDate>
    
-       <atom:link href="https://blog.szuecs.net/posts/index.xml" rel="self" type="application/rss+xml" />
+       <atom:link href="https://blog.szuecs.net/tags/infrastructure/index.xml" rel="self" type="application/rss+xml" />
    
    
      <item>

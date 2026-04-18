@@ -2,10 +2,28 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://blog.szuecs.net/about/</loc>
-    <lastmod>2025-11-22T21:24:25+01:00</lastmod>
+    <loc>https://blog.szuecs.net/tags/distributed-systems/</loc>
+    <lastmod>2026-04-18T20:02:25+02:00</lastmod>
+  </url><url>
+    <loc>https://blog.szuecs.net/tags/infrastructure/</loc>
+    <lastmod>2026-04-18T20:02:25+02:00</lastmod>
+  </url><url>
+    <loc>https://blog.szuecs.net/posts/kubernetes-zone-aware-traffic/</loc>
+    <lastmod>2026-04-18T20:02:25+02:00</lastmod>
+  </url><url>
+    <loc>https://blog.szuecs.net/tags/kubernetes/</loc>
+    <lastmod>2026-04-18T20:02:25+02:00</lastmod>
+  </url><url>
+    <loc>https://blog.szuecs.net/posts/</loc>
+    <lastmod>2026-04-18T20:02:25+02:00</lastmod>
   </url><url>
     <loc>https://blog.szuecs.net/</loc>
+    <lastmod>2026-04-18T20:02:25+02:00</lastmod>
+  </url><url>
+    <loc>https://blog.szuecs.net/tags/</loc>
+    <lastmod>2026-04-18T20:02:25+02:00</lastmod>
+  </url><url>
+    <loc>https://blog.szuecs.net/about/</loc>
     <lastmod>2025-11-22T21:24:25+01:00</lastmod>
   </url><url>
     <loc>https://blog.szuecs.net/categories/</loc>
@@ -15,12 +33,6 @@
     <lastmod>2025-11-22T19:55:23+01:00</lastmod>
   </url><url>
     <loc>https://blog.szuecs.net/posts/test-post/</loc>
-    <lastmod>2025-11-22T19:55:23+01:00</lastmod>
-  </url><url>
-    <loc>https://blog.szuecs.net/posts/</loc>
-    <lastmod>2025-11-22T19:55:23+01:00</lastmod>
-  </url><url>
-    <loc>https://blog.szuecs.net/tags/</loc>
     <lastmod>2025-11-22T19:55:23+01:00</lastmod>
   </url><url>
     <loc>https://blog.szuecs.net/tags/test/</loc>

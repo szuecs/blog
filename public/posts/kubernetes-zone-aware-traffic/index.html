@@ -126,7 +126,7 @@ You can learn a bit of Kubernetes and see interesting effects it can have. First
         </li>
         
 
-        <li>7 minute read</li>
+        <li>8 minute read</li>
     </ul>
 </aside>
 
@@ -228,20 +228,19 @@ r2: Host(&#34;products.example.org&#34;) &amp;&amp; Path(&#34;/products/:product
     -&gt; consistentHashBalanceFactor(1.25)
     -&gt; &lt;consistentHash, &#34;http://127.0.0.1:9998&#34;, &#34;http://127.0.0.1:9997&#34;&gt;;
 </code></pre><h3 id="coming-back-to-zone-aware-traffic">Coming back to zone aware traffic.</h3>
-<p>Of course if your data-plane skipper-ingress fetches routes from a
-control plane component like routesrv, the question is: how does
-routesrv know where the data-plan is running?</p>
-<p>The answer in our routesrv based zone aware traffic feature available
-in <a href="https://github.com/zalando/skipper/releases/tag/v0.24.64">v0.24.64</a>
-is: it does not!</p>
-<p>It exposes more route API endpoints:</p>
+<p>If your data-plane skipper-ingress fetches routes from a
+control plane component like routesrv, the question is:</p>
+<p>How does routesrv know where the skipper-ingress pod is running, that queries it?</p>
+<p><strong>Astonishing: routesrv has no idea!</strong></p>
+<p>Routesrv just exposes route API endpoints, that are used by the
+data-plane pods to fetch routes:</p>
 <ul>
-<li><code>/routes</code> fetch all routes with all ready endpoints</li>
+<li><code>/routes</code> fetch all routes</li>
 <li><code>/routes/:zone</code> fetch zone aware routes</li>
 </ul>
-<p>Skipper-ingress data plane pods get its zone by Kubernetes downwards
-API, which makes it possible to pass Kubernetes metadata to the
-process by environment variables:</p>
+<p>Skipper-ingress data plane pods know its zone by Kubernetes downwards
+API. This makes it possible to pass Kubernetes metadata to the process
+by environment variables:</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#008000;font-weight:bold">env</span>:<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>- <span style="color:#008000;font-weight:bold">name</span>:<span style="color:#bbb"> </span>KUBE_NODE_ZONE<span style="color:#bbb">
 </span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#bbb">  </span><span style="color:#008000;font-weight:bold">valueFrom</span>:<span style="color:#bbb">
@@ -249,7 +248,7 @@ process by environment variables:</p>
 </span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span><span style="color:#bbb">      </span><span style="color:#008000;font-weight:bold">fieldPath</span>:<span style="color:#bbb"> </span>metadata.labels[&#39;topology.kubernetes.io/zone&#39;]<span style="color:#bbb">
 </span></span></span></code></pre></div><p>Now you can use the environment variable in a flag to skipper like
 <code>-routes-urls=http://skipper-ingress-routesrv.kube-system.svc.cluster.local/routes/$(KUBE_NODE_ZONE)&quot;</code> to fetch zone aware routes.</p>
-<p>Great now we understand how we can do zone aware traffic 1.-3., but what about 4.?</p>
+<p>Great, now we understand how we can do zone aware traffic 1.-3., but what about 4.?</p>
 <p>Ok, 4. seems to be easy. You just plug an annotation
 <code>service.kubernetes.io/topology-mode: auto</code> and kube-proxy will make
 sure your ClusterIP service is having a safe amount of Kubernetes pods
@@ -262,18 +261,22 @@ you see that there are some thoughts about safety, because you do not
 want to create harm on a data-plane feature that every application has
 to rely on.</p>
 <p>As often in a life, things change. Sometimes implementation changes or
-your monitoring adds more visibility or application requirements on
+your monitoring adds more visibility. Your application requirements on
 the infrastructure change or traffic patterns, because someone
-deployed a new client to some service.</p>
+deployed a new client to some service. Sometimes it&rsquo;s a mixture of all
+of this visible in figure 2.</p>
 <p>To understand better the zonal traffic in our clusters we created a
-graph how much RPS by zone we have in skipper-ingress data-plane. If
-we have some new data and it shows something unexpected, my first
-question is always: can we trust the data?  In this case it seems we
-really were able to.  During the last weeks we had some interesting
-effects in one of our high traffic clusters, that is shown in
-figure 2. We can see that within 1h there were 3 times a large share
-of throughput hit only one zone and after some minutes it was going
-back to normal.</p>
+graph how much requests by zone we have in skipper-ingress
+data-plane. If we have some new data and it shows something
+unexpected, my first question is always: can we trust the data?
+Sometimes we do mistakes, like having a wrong unit or some selector is
+slightly wrong and you observe not exactly what you expected. So a bit
+of questioning your new data is always a great thing to find bugs.</p>
+<p>However, in this case it seems we really were able to trust the data.
+During the last weeks we had some interesting effects in one of our
+high traffic clusters. The effects are shown in figure 2. We can see
+that within 1h there were 3 times a large share of throughput that hit
+only one zone. After some minutes it was going back to normal.</p>
 <figure><a href="https://opensource.zalando.com/skipper"><img src="/posts/kubernetes-zone-aware-traffic/graph_split_traffic.png"
     alt="RPS traffic by zone and we can see a huge traffic split between these within 1-2 minutes and after a while it collapses again and it happened 3 times within 1 hour."></a><figcaption>
       <p>figure 2 - RPS traffic by zone</p>
@@ -283,11 +286,19 @@ back to normal.</p>
 <p>What we see is flapping of the traffic distribution, which sometimes
 caused an unexpected latency spike to one of our applications. This
 flapping was caused by kube-proxy, that thought it might makes sense
-to flap between zone aware and zone unaware traffic. If you check <a href="https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/#safeguards">safeguards</a>,
+to flap between zone aware and not zone aware traffic. If you check <a href="https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/#safeguards">safeguards</a>,
 you can read:</p>
-<pre><code>4. One or more endpoints does not have a zone hint: When this happens, the kube-proxy assumes that a transition from or to Topology Aware Hints is underway. Filtering endpoints for a Service in this state would be dangerous so the kube-proxy falls back to using all endpoints.
+<pre><code>4. One or more endpoints does not have a zone hint: When this
+  happens, the kube-proxy assumes that a transition from or to
+  Topology Aware Hints is underway. Filtering endpoints for a Service
+  in this state would be dangerous so the kube-proxy falls back to
+  using all endpoints.
 
-5. A zone is not represented in hints: If the kube-proxy is unable to find at least one endpoint with a hint targeting the zone it is running in, it falls back to using endpoints from all zones. This is most likely to happen as you add a new zone into your existing cluster.
+5. A zone is not represented in hints: If the kube-proxy is unable
+  to find at least one endpoint with a hint targeting the zone it
+  is running in, it falls back to using endpoints from all
+  zones. This is most likely to happen as you add a new zone into
+  your existing cluster.
 </code></pre>
 <p>Basically what we see in figure 2 is that if zone hints are populated,
 kube-proxy will write layer 4 rules such that rules are zone aware and
@@ -300,13 +311,15 @@ this flapping all the day for some weeks and it&rsquo;s most often not an
 issue, but sometimes a latency spike up to 250ms happened and this is
 large enough for high traffic low latency applications to fail.</p>
 <p>After discussing this in Kubernetes sig-network community channel we
-will try to switch to a more persistent <code>trafficDistribution: PreferSameZone</code>,
-that is now available in Kubernetes. It will provide no flapping for
-the traffic distribution. I am looking forward to see the effects.</p>
+will try to switch to a more persistent service type ClusterIP
+configurations by using <code>trafficDistribution: PreferSameZone</code>, that is
+now available in Kubernetes. It will provide no flapping for the
+traffic distribution. I am looking forward to see the effects.</p>
+<h3 id="what-about-pods">What about pods?</h3>
 <p>One other important configuration is that you have a balanced spread
 of pods for clients, proxy and backends. This you can influence by setting
 <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/"><code>topologySpreadConstraints</code></a>.
-The application developers already enabled <code>topologySpreadConstraints</code>,
+The proxy and also application developers already enabled <code>topologySpreadConstraints</code>,
 example:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>      <span style="color:#f92672">topologySpreadConstraints</span>:
 </span></span><span style="display:flex;"><span>        - <span style="color:#f92672">maxSkew</span>: <span style="color:#ae81ff">1</span>
@@ -316,10 +329,11 @@ example:</p>
 </span></span><span style="display:flex;"><span>            <span style="color:#f92672">matchLabels</span>:
 </span></span><span style="display:flex;"><span>              <span style="color:#f92672">component</span>: <span style="color:#ae81ff">ingress</span>
 </span></span><span style="display:flex;"><span>              <span style="color:#f92672">application</span>: <span style="color:#ae81ff">skipper-ingress</span>
-</span></span></code></pre></div><p>This is important to not have such unbalanced traffic created by
-clients and also that targets of the proxy are also spread evenly so
-the horizontal pod autoscaling can do its job and keep the load of
-single pods in bounds.</p>
+</span></span></code></pre></div><p>This is configuration is important to not create too much of an
+unbalanced traffic by your clients. Also the targets of the proxy have
+also to spread evenly so the horizontal pod autoscaling can do its job
+and keep the load of single pods in bounds.</p>
+<h3 id="one-last-thing">One last thing</h3>
 <p>Of course Kubernetes would not be Kubernetes, that everyone loves and
 hates, if there would not be a missing feature. Beware about the fact
 that there is no <a href="https://github.com/kubernetes/kubernetes/issues/124149">zone aware down scaling</a>.</p>

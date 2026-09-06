@@ -264,18 +264,18 @@ JS(\hat{y} || y) &= \frac{1}{2}(KL(y||\frac{y+\hat{y}}{2}) + KL(\hat{y}||\frac{y
 <h2 id="tests">Tests</h2>
 <p>{{ $v1 := 6 }}
 {{ $v2 := 7 }}</p>
-<!-- raw HTML omitted -->
+<p>The product of {{ $v1 }} and {{ $v2 }} is {{ mul $v1 $v2 }}.</p>
 <p>{{ $d = time.ParseDuration &ldquo;3.5h2.5m1.5s&rdquo; }}
 {{ $d.Hours }}</p>
 <h2 id="resources">Resources</h2>
 <p>resources.Get (global assets)
 {{ with resources.Get &ldquo;perf.svg&rdquo; }}
-<!-- raw HTML omitted -->
+<img src="{{ .RelPermalink }}" width="{{ .Width }}" height="{{ .Height }}" alt="">
 {{ end }}</p>
 <p>Resources.Get picture (per page) and try to render:</p>
 <p>{{ $image := .Resources.Get &ldquo;./skipper.png&rdquo; }}
 {{ with $image }}
-<!-- raw HTML omitted -->
+<img src="{{ .RelPermalink }}" width="{{ .Width }}" height="{{ .Height }}">
 {{ end }}</p>
 <p>{{ $image := .Resources.Get &ldquo;skipper.png&rdquo; }}
 {{ with $image }}

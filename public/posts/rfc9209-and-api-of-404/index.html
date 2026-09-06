@@ -154,23 +154,24 @@
     
 
     <p>We have an interesting <a href="https://github.com/zalando/restful-api-guidelines/pull/869">public debate</a>
-on the status code <code>404</code> in Zalando&rsquo;s API guidelines. I am a clear
-opponent to a change the proxy response from <code>404</code> to <code>5xx</code>, but let&rsquo;s
+on the status code 404 in Zalando&rsquo;s API guidelines. I am a clear
+opponent to a change the proxy response from 404 to 5xx, but let&rsquo;s
 try first to understand why they want to change.</p>
 <p>The reason why this change proposal started was an incident, that our
 <a href="https://github.com/zalando-incubator/kubernetes-on-aws/blob/dev/cluster/manifests/skipper/deployment.yaml#L4">canary</a>
-had some miss configuration. The canary is one pod in our ingress
-fleet. This should mitigate the blast radius of updating our ingress
+had some miss configuration. The canary is one pod in our Ingress
+fleet. This should mitigate the blast radius of updating our Ingress
 data- and control-plane.  However the data-plane started successful,
-but had no routes created by Kubernetes ingress and routegroup
-objects, so it responded <code>404</code> to all requests directed to applications.
-So as expected we had something like <code>&lt;5%</code> error rate responding <code>404</code>
+but had no routes created by <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Kubernetes Ingress</a>
+and <a href="https://opensource.zalando.com/skipper/kubernetes/routegroup-crd/">RouteGroup</a>
+objects, so it responded 404 to all requests directed to applications.
+So as expected we had something like <code>&lt;5%</code> error rate responding 404
 instead of reaching the applications, until some other control loop
 detected that we have no active applications anymore. The mentioned
-control loop got the connection to the skipepr-ingress that responded
-with <code>404</code>, which lead to downtime for all applications within one
+control loop got the connection to the <a href="https://opensource.zalando.com/skipper/kubernetes/ingress-controller/">skipper-ingress</a> that responded
+with 404, which lead to downtime for all applications within one
 minute. Basically the API for the control loop was, that status code
-<code>404</code> meant &ldquo;application does not exist&rdquo; or even better &ldquo;application was
+404 meant &ldquo;application does not exist&rdquo; or even better &ldquo;application was
 deleted&rdquo;, so it needed to act on this change and clean up resources.</p>
 <figure><img src="/posts/rfc9209-and-api-of-404/this_is_fine.jpeg"
     alt="This is fine meme"><figcaption>
@@ -182,20 +183,20 @@ deleted&rdquo;, so it needed to act on this change and clean up resources.</p>
 <p>What do they want to change exactly?</p>
 <p>Here is a cite, that shows what they want to change:</p>
 <blockquote>
-<p>For instance, a Kubernetes ingress router like
+<p>For instance, a Kubernetes Ingress router like
 <a href="https://github.com/zalando/skipper">https://github.com/zalando/skipper</a> must be configured to return
 the status code {503}  instead of {404}, if there is no route for an
 application service endpoint available.</p>
 </blockquote>
-<p>What is <code>503</code> and how it is supposed to be used?</p>
-<p><code>503</code> is defined in
+<p>What is 503 and how it is supposed to be used?</p>
+<p>503 is defined in
 <a href="https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.4">rfc9110</a>
 and is the status code for StatusServiceUnavailable, which sounds legit at
-first. However citing the RFC clarifies the intention of status code <code>503</code>:</p>
+first. However citing the RFC clarifies the intention of status code 503:</p>
 <blockquote>
 <p>The 503 (Service Unavailable) status code indicates that the server is currently unable to handle the request due to a temporary overload or scheduled maintenance, which will likely be alleviated after some delay. The server MAY send a Retry-After header field (Section 10.2.3) to suggest an appropriate amount of time for the client to wait before retrying the request.</p>
 </blockquote>
-<p>If you check when <code>503</code> status code is used today in http proxies, you
+<p>If you check when 503 status code is used today in http proxies, you
 will find for example circuit breaker, load shedder or in some cases
 if the proxy could not reach the backend.  I think this is pretty much
 inline with the RFC, for example load shedding and &ldquo;temporary
@@ -217,39 +218,40 @@ authenticate a request and return {401} or {403} on behalf of the service, it
 must never return a misleading status code, e.g. {404} or {410}, if the service
 is not configured or not responding.</p>
 </blockquote>
-<p>They say that a client calling some URL should be able to use <code>404</code>
+<p>They say that a client calling some URL should be able to use 404
 status code as the only thing it has to check for &ldquo;an item does not
-exist&rdquo;. So for <code>https://example.org/items/foo</code> reponse <code>404</code> means foo
+exist&rdquo;. So for <code>https://example.org/items/foo</code> reponse 404 means foo
 item does not exist.  This sounds also legit to me, even if I have a
 different opinion, because you can construct also weird examples like
 <code>https://example.org/items/foo/bar/qux</code> , that does not exist, even if
 <code>/items/foo</code> would exist. Normally you would get requests to some old
 wordpress security vulnerability, so something like
-<code>&lt;some-path&gt;/foo.php</code>.</p>
-<p>What is the definition of <code>404</code> status code?</p>
+<code>&lt;some-path&gt;/foo.php</code>. And yes, in this case they want to have a 5xx
+status code.</p>
+<p>What is the definition of 404 status code?</p>
 <blockquote>
 <p>15.5.5. 404 Not Found
 The 404 (Not Found) status code indicates that the origin server did not find a current representation for the target resource or is not willing to disclose that one exists. A 404 status code does not indicate whether this lack of representation is temporary or permanent; the 410 (Gone) status code is preferred over 404 if the origin server knows, presumably through some configurable means, that the condition is likely to be permanent.
 A 404 response is heuristically cacheable; i.e., unless otherwise indicated by the method definition or explicit cache controls (see Section 4.2.2 of [CACHING]).</p>
 </blockquote>
 <p>So a middlebox which is a proxy cache can heuristically cache the
-<code>404</code> response.  There is a status code <code>410</code> which should be
+404 response.  There is a status code 410 which should be
 preferred for deleted resources. This would be in the case of the
 incident a possible way to differentiate between &ldquo;deleted&rdquo; and &ldquo;does
 not exist&rdquo; or &ldquo;no matching route found&rdquo;.</p>
 <p>Why do I think a proxy that has no matching HTTP route for a given
-HTTP request should return <code>404</code>?</p>
+HTTP request should return 404?</p>
 <p>As a proxy to enable fast error detection you should indicate the most
 likely happening to guide your automations and investigators.  Given
-that availability tools respond with <code>503</code>. Given if a backend does not
+that availability tools respond with 503. Given if a backend does not
 listen to a port and Linux kernel return connection refused (oom of an
 application instance for example), which proxies will turn to
-a <code>502</code>. Given that a severe error of the proxy or the application will
-be a <code>500</code>. If you serve public endpoints then you know, if you ever
+a 502. Given that a severe error of the proxy or the application will
+be a 500. If you serve public endpoints then you know, if you ever
 looked into your access logs that a quite big fraction of traffic are
 security scanners, scanning all day for old vulnerabilities. As a
-proxy you repond by <code>404</code> and it&rsquo;s all good.</p>
-<p>Why should we change a <code>404</code> to a <code>5xx</code>?</p>
+proxy you repond by 404 and it&rsquo;s all good.</p>
+<p>Why should we change a 404 to a 5xx?</p>
 <p>The proposal says:</p>
 <blockquote>
 <p>a middleware must always return a temporary, non-authoritative server-side status code, such as:</p>
@@ -259,12 +261,12 @@ proxy you repond by <code>404</code> and it&rsquo;s all good.</p>
 <li><code>{503} — Service Unavailable</code>, or</li>
 <li><code>{504} — Gateway Timeout</code>.</li>
 </ul>
-<p>While the RFC for <code>404</code> says:</p>
+<p>While the RFC for 404 says:</p>
 <blockquote>
 <p>A 404 status code does not indicate whether this lack of representation is temporary or permanent</p>
 </blockquote>
-<p>So <code>404</code> could be temporary, which does not contradict what the
-middleware responds.  Even worse a temporary <code>404</code> can not safely
+<p>So 404 could be temporary, which does not contradict what the
+middleware responds.  Even worse a temporary 404 can not safely
 assumed by the client that it is always authoritative.  This means we
 have another clear contradiction to the proposed arguments about the
 end-to-end semantics.</p>
@@ -272,13 +274,13 @@ end-to-end semantics.</p>
 <blockquote>
 <p>The end-to-end semantics of HTTP status codes is a fundamental part of the API contract.</p>
 </blockquote>
-<p>Given that <code>404</code> could be temporary and the RFC shows <code>410</code> as a more
+<p>Given that 404 could be temporary and the RFC shows 410 as a more
 clear permanent status code, maybe the guideline should rather clarify
-the use of <code>404</code>. Even better it could tell about <code>410</code> instead.</p>
-<p>Why do I think <code>404</code> is the right status code for HTTP proxies that do
+the use of 404. Even better it could tell about 410 instead.</p>
+<p>Why do I think 404 is the right status code for HTTP proxies that do
 not find a matching route?</p>
 <p>A route can be created, update and deleted by someone any time, so
-temporary miss configured route returns <code>404</code> and if fixed again it
+temporary miss configured route returns 404 and if fixed again it
 returns again the result as expected. This seems to be reasonable
 based on the RFC.</p>
 <p>Another more practical reason is that the amount of crawlers,
@@ -287,8 +289,8 @@ page every minute my tiny box hosting this blog gets traffic from some
 of these and I don&rsquo;t care at all. Sometimes I name this &ldquo;random
 internet noise&rdquo;.  I also stopped logging them, because I don&rsquo;t want to
 waste disk for this garbage. Even better our default in our Kubernetes
-ingress layer for logs is to disable logs for <code>2xx</code>, <code>3xx</code>, <code>404</code> and
-<code>429</code>, because it&rsquo;s a waste of disk, money and compute. Even better
+ingress layer for logs is to disable logs for 2xx, 3xx, 404 and
+429, because it&rsquo;s a waste of disk, money and compute. Even better
 less people are distracted because someone started a vulnerability
 scanner against a proper zero trust architecture with default
 authentication all over the place. In the last 10 years running like
@@ -308,11 +310,11 @@ google-bot, bing-bot, &hellip; and you reading this post!</p>
 issue like this via status code is, that with the raise of Opentracing
 and the proper standard <a href="https://opentelemetry.io/">Open Telemetry</a>
 (short: OTel), provides a proper tool that easily identifes that the
-call chain of a <code>404</code> response ended at the HTTP proxy in case you need
+call chain of a 404 response ended at the HTTP proxy in case you need
 to know who responded during a failure analysis.</p>
 <p>Even developers that run their workload behind a proxy layer will want
-to have a <code>404</code> instead of <code>5xx</code> response, if you tell them that their
-alerting of <code>5xx</code> will create false alerts by random internet noise.</p>
+to have a 404 instead of 5xx response, if you tell them that their
+alerting of 5xx will create false alerts by random internet noise.</p>
 <p>/EOF</p>
 
 

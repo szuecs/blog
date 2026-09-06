@@ -118,9 +118,9 @@ Why should we change a `404` to a `5xx`?
 The proposal says:
 
 > a middleware must always return a temporary, non-authoritative server-side status code, such as:
-  * **{502} — Bad Gateway**,
-  * **{503} — Service Unavailable**, or
-  * **{504} — Gateway Timeout**.
+  * `{502} — Bad Gateway`,
+  * `{503} — Service Unavailable`, or
+  * `{504} — Gateway Timeout`.
 
 While the RFC for `404` says:
 
